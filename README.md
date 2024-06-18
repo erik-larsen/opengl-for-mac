@@ -16,7 +16,7 @@ Specifically, this repository provides:
 - Steps to build ANGLE from scratch, should you want to build GLES libraries yourself.  
   NOTE: The ANGLE build consumes ~35GB as of June 2024.
   
-Thanks to [grplyer](https://github.com/grplyler) and [Peter0x44](https://github.com/Peter0x44) for the [steps](https://medium.com/@grplyler/building-and-linking-googles-angle-with-raylib-on-macos-67b07cd380a3) to copy GLES libraries from a local Chrome installation and for building ANGLE.
+Thanks to [grplyer](https://github.com/grplyler) and [Peter0x44](https://github.com/Peter0x44) for the [steps](https://medium.com/@grplyler/building-and-linking-googles-angle-with-raylib-on-macos-67b07cd380a3) to copy GLES libraries from a local Chrome installation and for showing how to build ANGLE on Mac.
     
 ### Install requirements
 ```
