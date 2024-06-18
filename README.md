@@ -11,14 +11,18 @@ Specifically, this repository provides:
   All code is in one file, with the same code building to Mac and Emscripten, save for a few short #ifdef's. Build instructions are included.
 - Steps to obtain the latest GLES headers via ANGLE and the latest GLES libraries via Chrome.
 - Steps to build ANGLE from scratch, should you want to build GLES libraries yourself.  
-  Note: The ANGLE build consumes ~35GB as of June 2024.
+  NOTE: The ANGLE build consumes ~35GB as of June 2024.
   
-Credits: Thanks to [grplyer](https://github.com/grplyler) and [Peter0x44](https://github.com/Peter0x44) for the [steps](https://medium.com/@grplyler/building-and-linking-googles-angle-with-raylib-on-macos-67b07cd380a3) to copy GLES libraries from a local Chrome installation and for how to build ANGLE.
+Thanks to [grplyer](https://github.com/grplyler) and [Peter0x44](https://github.com/Peter0x44) for the [steps](https://medium.com/@grplyler/building-and-linking-googles-angle-with-raylib-on-macos-67b07cd380a3) to copy GLES libraries from a local Chrome installation and for building ANGLE.
     
-### Install prerequisites
+### Install requirements
 ```
-# Clone this repository
+# Clone gles-for-mac
 git clone https://github.com/erik-larsen/gles-for-mac.git
+
+# Set your path to gles-for-mac (NOTE: add this to your ~/.zshrc)
+export GLES_FOR_MAC=/path/to/gles-for-mac
+export DYLD_FALLBACK_LIBRARY_PATH=$GLES_FOR_MAC/lib
 
 # Install Apple Developer Command Line Tools
 xcode-select --install
@@ -29,29 +33,27 @@ xcode-select --install
 # Install SDL2 and Emscripten
 brew install sdl2
 brew install emscripten
-
-# Set your path to gles-for-mac
-GLES_FOR_MAC=/path/to/gles-for-mac
 ```
 
 ### Build sample app - Mac native
 ```
 clang sdl_gles_minimal.c -o sdl_gles_minimal $(sdl2-config --cflags --libs) -I$GLES_FOR_MAC/include -L$GLES_FOR_MAC/lib -l GLESv2 -l EGL
-install_name_tool -add_rpath $GLES_FOR_MAC/lib sdl_gles_minimal
 ./sdl_gles_minimal
 ```
+See also build_mac.sh and clean.sh.
 
 ### Build sample app - Emscripten
 ```
 emcc sdl_gles_minimal.c -s USE_SDL=2 -s FULL_ES2=1 -o sdl_gles_minimal.html
 emrun sdl_gles_minimal.html
 ```
+See also build_emscripten.sh and clean.sh.
 
 ### Obtain the latest GLES headers and libraries
 ```
 # Copy ANGLE GLES headers to gles-for-mac
 git clone https://chromium.googlesource.com/angle/angle
-ANGLE=/path/to/angle
+export ANGLE=/path/to/angle
 cp -r $ANGLE/include/EGL   $GLES_FOR_MAC/include
 cp -r $ANGLE/include/GLES  $GLES_FOR_MAC/include
 cp -r $ANGLE/include/GLES2 $GLES_FOR_MAC/include
