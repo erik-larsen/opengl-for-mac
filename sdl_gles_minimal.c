@@ -22,19 +22,38 @@
 #include <SDL.h>
 #include <SDL_opengles2.h>
 
-GLuint initShader()
+typedef struct {
+    SDL_Window* p_window;
+    bool is_running;
+    GLuint shader_program;
+    int vp_width, vp_height;
+} AppData;
+
+void check_shader_build(const char* shader_name, GLenum status, GLuint shader) 
 {
-    const GLchar* vertexSource = " \
+    GLint success;
+    glGetShaderiv(shader, status, &success);
+    if (success)
+        printf("INFO: %s id %d build OK\n", shader_name, shader);
+    else
+        printf("ERROR: %s id %d build FAILED!\n", shader_name, shader);
+}
+
+GLuint init_shader()
+{
+    const GLchar* vertex_source = " \
         attribute vec4 vPosition; \
+        uniform float aspect; \
         varying vec3 color; \
         void main() \
         { \
             gl_Position = vec4(vPosition.xyz, 1.0); \
+            gl_Position.y *= aspect; \
             color = gl_Position.xyz + vec3(0.5); \
         } \
     ";
 
-    const GLchar* fragmentSource = " \
+    const GLchar* fragment_source = " \
         precision mediump float; \
         varying vec3 color; \
         void main() \
@@ -44,70 +63,98 @@ GLuint initShader()
     ";
 
     // Create and compile vertex shader
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexSource, NULL);
-    glCompileShader(vertexShader);
+    GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex_shader, 1, &vertex_source, NULL);
+    glCompileShader(vertex_shader);
+    check_shader_build("vertex_shader", GL_COMPILE_STATUS, vertex_shader);
 
     // Create and compile fragment shader
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
-    glCompileShader(fragmentShader);
+    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment_shader, 1, &fragment_source, NULL);
+    glCompileShader(fragment_shader);
+    check_shader_build("fragment_shader", GL_COMPILE_STATUS, fragment_shader);
 
-    // Link vertex and fragment shader into shader program and use it
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    glUseProgram(shaderProgram);
+    // Link vertex and fragment shader into shader program and start using it
+    GLuint shader_program = glCreateProgram();
+    glAttachShader(shader_program, vertex_shader);
+    glAttachShader(shader_program, fragment_shader);
+    glLinkProgram(shader_program);
+    glUseProgram(shader_program);
 
-    return shaderProgram;
+    // Initialize aspect uniform
+    glUniform1f(glGetUniformLocation(shader_program, "aspect"), 1.0f);
+
+    return shader_program;
 }
 
-bool handle_events()
+void resize_viewport(int width, int height, GLuint shader_program)
 {
-    // Poll SDL events, check for quit/escape
-    bool is_running = true;
+    printf("INFO: GL viewport resize = %dx%d\n", width, height);
 
+    glViewport(0, 0, width, height);
+    float aspect = (float)width / (float)height;
+    glUniform1f(glGetUniformLocation(shader_program, "aspect"), aspect);
+}
+
+void handle_events(AppData* app_data)
+{
+    // Poll SDL events, check for quit/escape and window resize
     SDL_Event event;
-    while (0 != SDL_PollEvent(&event)) {
-        if (SDL_QUIT == event.type)
-            is_running = false;
-        
-        else if (SDL_KEYDOWN == event.type) {
-            const Uint8* keyStates = SDL_GetKeyboardState(NULL);
-            if (keyStates[SDL_SCANCODE_ESCAPE]) 
-                is_running = false;
+    while (SDL_PollEvent(&event)) {
+        switch(event.type) {
+
+            case SDL_QUIT:
+                app_data->is_running = false;
+            break;
+            
+            case SDL_KEYDOWN: 
+            {
+                // Escape key pressed
+                const Uint8* keyStates = SDL_GetKeyboardState(NULL);
+                if (keyStates[SDL_SCANCODE_ESCAPE]) 
+                    app_data->is_running = false;
+                break;
+            }
+
+            case SDL_WINDOWEVENT:
+            {
+                // Resize viewport
+                if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+                {
+                    int width, height;
+                    SDL_GL_GetDrawableSize(app_data->p_window, &width, &height);
+                    resize_viewport(width, height, app_data->shader_program);
+                }
+                break;
+            }
+
+            default:
+                break;
         }
     }
-
-    return is_running;
 }
 
-void redraw(SDL_Window *pWindow)
-{
+void redraw(AppData* app_data)
+{ 
     // Clear
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // Render scene
+    // Draw geometry
     GLfloat vertices[] = {0.0f, 0.5f, 0.0f, -0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f};
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertices);
     glEnableVertexAttribArray(0);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     // Update window
-    SDL_GL_SwapWindow(pWindow);
+    SDL_GL_SwapWindow(app_data->p_window);
 }
 
-typedef struct {
-    SDL_Window* pWindow;
-    bool is_running;
-} LoopData;
-
 void main_loop(void* main_loop_arg)
-{
-    LoopData* loop_data = (LoopData*)main_loop_arg;
-    loop_data->is_running = handle_events();
-    redraw(loop_data->pWindow);
+{    
+    // Main loop: handle events and redraw
+    AppData* app_data = (AppData*)main_loop_arg;
+    handle_events(app_data);
+    redraw(app_data);
 }
 
 int main(int argc, char** argv) 
@@ -122,6 +169,8 @@ int main(int argc, char** argv)
     SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, "1");
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_EGL, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetSwapInterval(1); // 1 = sync framerate to refresh rate (no screen tearing)
 
     // Explicitly set channel depths, otherwise we might get some < 8
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -129,46 +178,47 @@ int main(int argc, char** argv)
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetSwapInterval(1); // 1 = sync framerate to refresh rate
-
-    // Create window
-    int winWidth = 512, winHeight = 512;
-    SDL_Window* pWindow = SDL_CreateWindow("SDL GLES minimal example", 
+    // Create SDL GL window
+    int vp_width = 512, vp_height = 512;
+    SDL_Window* p_window = SDL_CreateWindow("SDL GLES minimal example", 
                                            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
-                                           winWidth, winHeight, 
-                                           SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN);
+                                           vp_width, vp_height, 
+                                           SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
-    // Init GL context
-    SDL_GLContext glContext = SDL_GL_CreateContext(pWindow);
+    // Create SDL GL context
+    SDL_GLContext gl_context = SDL_GL_CreateContext(p_window);
     printf("INFO: GL version: %s\n", glGetString(GL_VERSION));
 
-    // Get actual GL window size in pixels, in case of high dpi scaling
-    SDL_GL_GetDrawableSize(pWindow, &winWidth, &winHeight);
-    printf("INFO: GL window size = %dx%d\n", winWidth, winHeight);
-    glClearColor(0.1F, 0.1F, 0.15F, 1.F);
-    glViewport(0, 0, winWidth, winHeight);   
-
     // Load shader program
-    GLuint program = initShader();
-    glUseProgram(program);
+    GLuint shader_program = init_shader();
 
-    // Run event/redraw loop
-    LoopData loop_data = {pWindow, true};
-    void* main_loop_arg = &loop_data; // User-defined data to pass to main_loop()
+    // Initialize viewport
+    // NOTE: Use SDL_GL_GetDrawableSize to handle high dpi scaling, which may e.g. double our requested window size
+    SDL_GL_GetDrawableSize(p_window, &vp_width, &vp_height);
+    resize_viewport(vp_width, vp_height, shader_program);
+
+    // Set clear color
+    glClearColor(0.1F, 0.1F, 0.15F, 1.F);
+
+    // Run app loop, handle events and redraw
+    AppData app_data = (AppData) {p_window, true, shader_program, vp_width, vp_height};
+    void* main_loop_arg = &app_data; // User-defined data to pass to main_loop()
 
     #ifdef __EMSCRIPTEN__
+        // Run Emscripten main loop     
         int fps = 0; // Set to 0 to use browser's requestAnimationFrame (Emscripten recommended)
-        int simulate_infinite_loop = 0;
+        int simulate_infinite_loop = 1;
         emscripten_set_main_loop_arg(main_loop, main_loop_arg, fps, simulate_infinite_loop);
+
+        // Emscripten handles SDL cleanup
     #else
-        while (loop_data.is_running)
+        // Run native main loop
+        while (app_data.is_running)
             main_loop(main_loop_arg);
 
-        // Clean up
-        SDL_GL_DeleteContext(glContext);
-        SDL_DestroyWindow(pWindow);
+        // Clean up SDL
+        SDL_GL_DeleteContext(gl_context);
+        SDL_DestroyWindow(p_window);
         SDL_Quit();
     #endif
 
