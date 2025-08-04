@@ -20,12 +20,12 @@ Thanks to [grplyer](https://github.com/grplyler) and [Peter0x44](https://github.
     
 ### Install requirements
 ```
-# Clone gles-for-mac
-git clone https://github.com/erik-larsen/gles-for-mac.git
+# Clone opengl-for-mac
+git clone https://github.com/erik-larsen/opengl-for-mac.git
 
-# Set your path to gles-for-mac (NOTE: add this to your ~/.zshrc)
-export GLES_FOR_MAC=/path/to/gles-for-mac
-export DYLD_FALLBACK_LIBRARY_PATH=$GLES_FOR_MAC/lib
+# Set your path to opengl-for-mac (NOTE: add this to your ~/.zshrc)
+export OGL_FOR_MAC=/path/to/opengl-for-mac
+export DYLD_FALLBACK_LIBRARY_PATH=$OGL_FOR_MAC/lib
 
 # Install Apple Developer Command Line Tools
 xcode-select --install
@@ -40,7 +40,7 @@ brew install emscripten
 
 ### Build sample app - Mac native
 ```
-clang sdl_gles_minimal.c -o sdl_gles_minimal $(sdl2-config --cflags --libs) -I$GLES_FOR_MAC/include -L$GLES_FOR_MAC/lib -l GLESv2 -l EGL
+clang sdl_gles_minimal.c -o sdl_gles_minimal $(sdl2-config --cflags --libs) -I$OGL_FOR_MAC/include -L$OGL_FOR_MAC/lib -l GLESv2 -l EGL
 ./sdl_gles_minimal
 ```
 See also build_mac.sh and clean.sh.
@@ -54,18 +54,18 @@ See also build_emscripten.sh and clean.sh.
 
 ### Obtain the latest GLES headers and libraries
 ```
-# Copy ANGLE GLES headers to gles-for-mac
+# Copy ANGLE GLES headers to opengl-for-mac
 git clone https://chromium.googlesource.com/angle/angle
 export ANGLE=/path/to/angle
-cp -r $ANGLE/include/EGL   $GLES_FOR_MAC/include
-cp -r $ANGLE/include/GLES  $GLES_FOR_MAC/include
-cp -r $ANGLE/include/GLES2 $GLES_FOR_MAC/include
-cp -r $ANGLE/include/KHR   $GLES_FOR_MAC/include
+cp -r $ANGLE/include/EGL   $OGL_FOR_MAC/include
+cp -r $ANGLE/include/GLES  $OGL_FOR_MAC/include
+cp -r $ANGLE/include/GLES2 $OGL_FOR_MAC/include
+cp -r $ANGLE/include/KHR   $OGL_FOR_MAC/include
 
-# Copy Chrome GLES libraries to gles-for-mac
+# Copy Chrome GLES libraries to opengl-for-mac
 install Chrome: https://www.google.com/chrome/browser-tools/    
-cp "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/Current/Libraries/libGLESv2.dylib" $GLES_FOR_MAC/lib
-cp "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/Current/Libraries/libEGL.dylib" $GLES_FOR_MAC/lib
+cp "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/Current/Libraries/libGLESv2.dylib" $OGL_FOR_MAC/lib
+cp "/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/Versions/Current/Libraries/libEGL.dylib" $OGL_FOR_MAC/lib
 ```
 
 ### Build ANGLE from scratch
@@ -88,11 +88,11 @@ gclient sync
 gn gen out/Release
 ninja -C out/Release
 
-# Copy ANGLE headers and libs to gles-for-mac
-cp -r $ANGLE/include/EGL   $GLES_FOR_MAC/include
-cp -r $ANGLE/include/GLES  $GLES_FOR_MAC/include
-cp -r $ANGLE/include/GLES2 $GLES_FOR_MAC/include
-cp -r $ANGLE/include/KHR   $GLES_FOR_MAC/include
-cp $ANGLE/out/Release/libGLESv2.dylib $GLES_FOR_MAC/lib
-cp $ANGLE/out/Release/libEGL.dylib    $GLES_FOR_MAC/lib
+# Copy ANGLE headers and libs to opengl-for-mac
+cp -r $ANGLE/include/EGL   $OGL_FOR_MAC/include
+cp -r $ANGLE/include/GLES  $OGL_FOR_MAC/include
+cp -r $ANGLE/include/GLES2 $OGL_FOR_MAC/include
+cp -r $ANGLE/include/KHR   $OGL_FOR_MAC/include
+cp $ANGLE/out/Release/libGLESv2.dylib $OGL_FOR_MAC/lib
+cp $ANGLE/out/Release/libEGL.dylib    $OGL_FOR_MAC/lib
 ```
