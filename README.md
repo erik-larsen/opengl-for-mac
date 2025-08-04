@@ -1,12 +1,12 @@
-# gles-for-mac
+# opengl-for-mac
 
 ![Native Mac GLES app](sdl_gles_minimal.png)
 
-Simplify development of native Mac apps using OpenGLES (GLES) and SDL2.
+Simplify development of native Mac apps using OpenGL (specifically OpenGL ES) and SDL2.
 
-Having a Mac native GLES + SDL2 build can be helpful when developing for Emscripten and WebGL, to aid in debugging and comparison between native and web builds.  More generally, having GLES available enables continuing to do general OpenGL-like development in a Mac environment.
+Having a Mac native OpenGL ES + SDL2 build can be helpful when developing for Emscripten and WebGL, to aid in debugging and comparison between native and web builds.  More generally, having OpenGL ES (GLES) available enables continuing to do general OpenGL development on Mac.
 
-While Apple has dropped OpenGL and GLES in favor of Metal, Google's ANGLE project can be used to fill the void.  ANGLE provides hardware accelerated GLES in Chromium browsers across many platforms, including Mac.  So by packaging up the ANGLE GLES headers and libraries here, GLES development on Mac is restored.
+While Apple has dropped OpenGL and GLES in favor of Metal, Google's ANGLE project can be used to fill the void.  ANGLE provides hardware accelerated GLES in Chromium browsers across many platforms, including Mac, where OpenGL is implemented on top of Metal.  So by packaging up the ANGLE GLES headers and libraries here, OpenGL development on Mac is restored.
 
 Specifically, this repository provides:
 - Ready-to-use GLES headers and libraries, without having to download and build ANGLE.
