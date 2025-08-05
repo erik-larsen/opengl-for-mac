@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>100% CSS canvas scaling</title>
+    <style>
+        canvas {
+            position: fixed;
+            top: 0%;
+            left: 0%;            
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        var Module = { canvas: document.getElementById('canvas') };
+    </script>
+    <script src="./sdl_gles_minimal.js"></script>
+</body>
+</html>
