@@ -11,7 +11,7 @@ While Apple has dropped OpenGL and GLES in favor of Metal, Google's ANGLE projec
 Specifically, this repository provides:
 - Ready-to-use GLES headers and libraries, without having to download and build ANGLE.
 - A very minimal GLES + SDL2 hello triangle sample that builds to Mac executable and Emscripten web page.  
-  All code is in one file, with the same code building to Mac and Emscripten, save for a few short #ifdef's. Build instructions are included.
+- All code is in one file, with the same code building to Mac and Emscripten, save for a few short #ifdef's. Build instructions are included.
 - Steps to obtain the latest GLES headers via ANGLE and the latest GLES libraries via Chrome.
 - Steps to build ANGLE from scratch, should you want to build GLES libraries yourself.  
   NOTE: The ANGLE build consumes ~35GB as of June 2024.
