@@ -1,4 +1,5 @@
 # opengl-for-mac
+*OpenGL on Mac lives on*
 
 ![Native Mac GLES app](sdl_gles_minimal.png)
 
