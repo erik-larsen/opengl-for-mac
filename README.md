@@ -12,6 +12,7 @@ While Apple has dropped OpenGL and GLES in favor of Metal, Google's ANGLE projec
 Specifically, this repository provides:
 - Ready-to-use GLES headers and libraries, without having to download and build ANGLE.
 - A very minimal GLES + SDL2 hello triangle sample that builds to Mac executable and Emscripten web page.  
+- A GLES 3.0 version of the same sample, which builds to Mac executable and Emscripten WebGL 2 web page, and exercises what GLES 3 adds: `#version 300 es` shaders, a vertex array object, instanced drawing, and an unsigned integer texture read with `texelFetch`.
 - All code is in one file, with the same code building to Mac and Emscripten, save for a few short #ifdef's. Build instructions are included.
 - Steps to obtain the latest GLES headers via ANGLE and the latest GLES libraries via Chrome.
 - Steps to build ANGLE from scratch, should you want to build GLES libraries yourself.  
@@ -53,6 +54,17 @@ emrun sdl_gles_minimal.html
 ```
 See also build_emscripten.sh and clean.sh.
 
+### Build GLES 3 sample app - Mac native and Emscripten
+ANGLE on Mac provides GLES 3.0, and Emscripten maps GLES 3.0 to WebGL 2.  Ask SDL for a 3.0 context and include `GLES3/gl3.h`; the library is the same `libGLESv2`.
+```
+clang sdl_gles3_minimal.c -o sdl_gles3_minimal $(sdl2-config --cflags --libs) -I$OGL_FOR_MAC/include -L$OGL_FOR_MAC/lib -l GLESv2 -l EGL
+./sdl_gles3_minimal
+
+emcc sdl_gles3_minimal.c -s USE_SDL=2 -s MIN_WEBGL_VERSION=2 -s MAX_WEBGL_VERSION=2 -o sdl_gles3_minimal.js
+python3 -m http.server   # then open http://localhost:8000/sdl_gles3_minimal.html
+```
+See also `./build_mac.sh gles3` and build_emscripten.sh.
+
 ### Obtain the latest GLES headers and libraries
 ```
 # Copy ANGLE GLES headers to opengl-for-mac
@@ -61,6 +73,7 @@ export ANGLE=/path/to/angle
 cp -r $ANGLE/include/EGL   $OGL_FOR_MAC/include
 cp -r $ANGLE/include/GLES  $OGL_FOR_MAC/include
 cp -r $ANGLE/include/GLES2 $OGL_FOR_MAC/include
+cp -r $ANGLE/include/GLES3 $OGL_FOR_MAC/include
 cp -r $ANGLE/include/KHR   $OGL_FOR_MAC/include
 
 # Copy Chrome GLES libraries to opengl-for-mac
@@ -93,6 +106,7 @@ ninja -C out/Release
 cp -r $ANGLE/include/EGL   $OGL_FOR_MAC/include
 cp -r $ANGLE/include/GLES  $OGL_FOR_MAC/include
 cp -r $ANGLE/include/GLES2 $OGL_FOR_MAC/include
+cp -r $ANGLE/include/GLES3 $OGL_FOR_MAC/include
 cp -r $ANGLE/include/KHR   $OGL_FOR_MAC/include
 cp $ANGLE/out/Release/libGLESv2.dylib $OGL_FOR_MAC/lib
 cp $ANGLE/out/Release/libEGL.dylib    $OGL_FOR_MAC/lib
